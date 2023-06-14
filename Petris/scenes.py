@@ -6,7 +6,7 @@ from shape import get_random_shape
 
 ########
 # INIT #
-########:260
+# :260
 
 pg.init()
 
@@ -69,29 +69,38 @@ class SceneBase:
         self.next_font = pg.font.Font(GameMetaData.font_type, 16)
 
     def process_input(self, events):
-        raise NotImplementedError("Uh-oh, you didn't override this (process_input) in the child class")
+        raise NotImplementedError(
+            "Uh-oh, you didn't override this (process_input) in the child class")
 
     def update(self):
-        raise NotImplementedError("Uh-oh, you didn't override this (update) in the child class")
+        raise NotImplementedError(
+            "Uh-oh, you didn't override this (update) in the child class")
 
     def render(self, screen):
-        raise NotImplementedError("Uh-oh, you didn't override this (render) in the child class")
+        raise NotImplementedError(
+            "Uh-oh, you didn't override this (render) in the child class")
 
     def draw_score_area(self, main_screen):
-        pg.draw.rect(main_screen, Colour.FIREBRICK.value, (GameMetaData.score_window_pos, 50, 155, 85), 1)
-        score_text = self.score_font.render("Score: " + str(State.score), True, Colour.WHITE.value)
+        pg.draw.rect(main_screen, Colour.FIREBRICK.value,
+                     (GameMetaData.score_window_pos, 50, 155, 85), 1)
+        score_text = self.score_font.render(
+            "Score: " + str(State.score), True, Colour.WHITE.value)
         full_line_text = self.full_line_font.render("Lines: " + str(State.full_line_no), True,
                                                     Colour.WHITE.value)
-        level_text = self.level_font.render("Level: " + str(State.level), True, Colour.WHITE.value)
+        level_text = self.level_font.render(
+            "Level: " + str(State.level), True, Colour.WHITE.value)
 
         main_screen.blit(score_text, (GameMetaData.score_window_text_pos, 60))
-        main_screen.blit(full_line_text, (GameMetaData.score_window_text_pos, 85))
+        main_screen.blit(
+            full_line_text, (GameMetaData.score_window_text_pos, 85))
         main_screen.blit(level_text, (GameMetaData.score_window_text_pos, 110))
 
         # Draw the next shape
-        pg.draw.rect(main_screen, Colour.FIREBRICK.value, (GameMetaData.score_window_pos, 140, 155, 80), 1)
+        pg.draw.rect(main_screen, Colour.FIREBRICK.value,
+                     (GameMetaData.score_window_pos, 140, 155, 80), 1)
         next_text = self.next_font.render('Next: ', True, Colour.WHITE.value)
-        main_screen.blit(next_text, (GameMetaData.score_window_text_pos - 15, 145))
+        main_screen.blit(
+            next_text, (GameMetaData.score_window_text_pos - 15, 145))
 
     @staticmethod
     def draw_area_grid(main_screen):
@@ -164,7 +173,7 @@ class TitleScene(SceneBase):
                         Scenes.gameScene = GameScene()
                         Scenes.active_scene = Scenes.gameScene
                     if self.options == 2:  # Options
-                        pass
+                        Scenes.active_scene = OptionScene()
                     if self.options == 3:  # Quit
                         quit_game()
             if event.type == pygame.QUIT:
@@ -198,7 +207,8 @@ class TitleScene(SceneBase):
 
         if self.is_game_over:
             game_over_font = pg.font.Font(GameMetaData.font_type, 72)
-            game_over_text = game_over_font.render("GAME OVER", True, Colour.RED.value)
+            game_over_text = game_over_font.render(
+                "GAME OVER", True, Colour.RED.value)
             screen.blit(game_over_text,
                         game_over_text.get_rect(center=(GameMetaData.screen_center_width,
                                                         GameMetaData.screen_center_height - 160)))
@@ -217,13 +227,102 @@ class TitleScene(SceneBase):
         pygame.display.update()
 
 
+class OptionScene(SceneBase):
+    def __init__(self):
+        SceneBase.__init__(self)
+        self._is_continue = False
+        self.difficulty = 0 if self.is_continue else 1
+        self.default = Colour.WHITE.value
+        self.selected = Colour.RED.value
+        self.easy_font = pygame.font.Font(GameMetaData.font_type, 36)
+        self.intermediate_font = pygame.font.Font(GameMetaData.font_type, 36)
+        self.hard_font = pygame.font.Font(GameMetaData.font_type, 36)
+        self.return_font = pygame.font.Font(GameMetaData.font_type, 36)
+        self.continue_font = pygame.font.Font(GameMetaData.font_type, 36)
+
+    @property
+    def is_continue(self):
+        return self._is_continue
+
+    @is_continue.setter
+    def is_continue(self, is_continue):
+        self._is_continue = is_continue
+        self.options = 0
+
+    def process_input(self, events):
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    self.difficulty += 1
+                    if self.difficulty > 3:
+                        self.difficulty = 0 if self.is_continue else 1
+                if event.key == pygame.K_UP:
+                    self.difficulty -= 1
+                    lower_limit = 0 if self.is_continue else 1
+                    if self.difficulty < lower_limit:
+                        self.difficulty = 3
+                if event.key == pygame.K_ESCAPE:
+                    if self.is_continue:
+                        Scenes.active_scene = Scenes.gameScene
+                if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                    if self.difficulty == 0:  # CONTINUE
+                        Scenes.active_scene = Scenes.gameScene
+                    if self.difficulty == 1:  # EASY
+                        pass
+                        # Scenes.active_scene = Scenes.gameScene
+                    if self.difficulty == 2:  # INTERMEDIATE
+                        pass
+                        # self._is_game_over = False
+                        # State.reset_new_game()
+                        # Scenes.gameScene = GameScene()
+                        # Scenes.active_scene = Scenes.gameScene
+                    if self.difficulty == 3:  # HARD
+                        pass
+            if event.type == pygame.QUIT:
+                quit_game()
+
+    def update(self):
+        pass
+
+    def render(self, screen):
+
+        SceneBase.draw_area_grid(screen)
+        difficulty_continue_text = self.continue_font.render("CONTINUE", True,
+                                                             self.selected if self.difficulty == 0 else self.default)
+        difficulty_easy_text = self.easy_font.render("EASY", True,
+                                                     self.selected if self.difficulty == 1 else self.default)
+        difficulty_intermediate_text = self.intermediate_font.render("INTERMEDIATE", True,
+                                                                     self.selected if self.difficulty == 2 else self.default)
+        difficulty_hard_text = self.hard_font.render("HARD", True,
+                                                     self.selected if self.difficulty == 3 else self.default)
+
+        menu_background = pygame.Rect((0, 0), (325, 325))
+        menu_rect = difficulty_intermediate_text.get_rect(center=(GameMetaData.screen_center_width,
+                                                          GameMetaData.screen_center_height))
+        menu_offset = 25 if self.is_continue else 0
+        menu_background.center = (menu_rect.width / 2 + menu_rect.x,
+                                  (menu_rect.height / 2 + menu_rect.y) - menu_offset)
+        pg.draw.rect(screen, Colour.BLACK.value, menu_background, 0)
+        pg.draw.rect(screen, Colour.WHITE.value, menu_background, 1)
+
+        screen.blit(difficulty_continue_text, difficulty_continue_text.get_rect(center=(GameMetaData.screen_center_width,
+                                                                                        GameMetaData.screen_center_height - 150)))
+        screen.blit(difficulty_easy_text, difficulty_easy_text.get_rect(center=(GameMetaData.screen_center_width,
+                                                                                GameMetaData.screen_center_height - 25)))
+        screen.blit(difficulty_intermediate_text, menu_rect)
+        screen.blit(difficulty_hard_text, difficulty_hard_text.get_rect(center=(GameMetaData.screen_center_width,
+                                                                                GameMetaData.screen_center_height + 150)))
+        pygame.display.update()
+
+
 class GameScene(SceneBase):
     def __init__(self):
         SceneBase.__init__(self)
         self.empty_line = []
         for i in range(GameMetaData.map_column_no):
             self.empty_line.append(0)
-        self.tetris_map = [self.empty_line[:] for _ in range(GameMetaData.map_row_no)]
+        self.tetris_map = [self.empty_line[:]
+                           for _ in range(GameMetaData.map_row_no)]
         self.moving_object = [get_random_shape(GameMetaData.map_row_no, GameMetaData.map_column_no),
                               get_random_shape(GameMetaData.map_row_no, GameMetaData.map_column_no)]
         self.movement_fps = 0
@@ -254,12 +353,13 @@ class GameScene(SceneBase):
                     self.moving_object[0].move_down(self.tetris_map)
                     State.score += 2
                 if event.key == pg.K_UP:
-                    could_rotate = self.moving_object[0].rotate(self.tetris_map)
-                    
+                    could_rotate = self.moving_object[0].rotate(
+                        self.tetris_map)
+
                 if event.key == pg.K_SPACE:
                     if not self.super_speed_mode:
                         self.super_speed_mode = True
-                        #speed_mode_sound.play()
+                        # speed_mode_sound.play()
                         self.movement_speed = 1
                     else:
                         self.super_speed_mode = False
@@ -283,7 +383,8 @@ class GameScene(SceneBase):
             self.move_object_down_or_game_over()
 
     def draw_next_shape(self, main_screen):
-        self.moving_object[1].draw_next(main_screen, GameMetaData.score_window_text_pos - 20)
+        self.moving_object[1].draw_next(
+            main_screen, GameMetaData.score_window_text_pos - 20)
 
     def render(self, main_screen):
         main_screen.fill(Colour.BLACK.value)
@@ -307,7 +408,8 @@ class GameScene(SceneBase):
             for column_no, column_value in enumerate(row):
                 if column_value != 0:
                     block_color = get_colour_by_number(column_value)
-                    pg.draw.rect(main_screen, block_color.value, (50 + (column_no * 30), 50 + (row_no * 30), 30, 30), 2)
+                    pg.draw.rect(main_screen, block_color.value, (50 +
+                                 (column_no * 30), 50 + (row_no * 30), 30, 30), 2)
                     pg.draw.rect(main_screen, block_color.value, (50 + (column_no * 30) + 5, 50 + (row_no * 30) + 5, 21,
                                                                   21))
         SceneBase.draw_area_grid(main_screen)
@@ -333,7 +435,8 @@ class GameScene(SceneBase):
             for block in self.moving_object[0].blocks:
                 if block[0] == 0:
                     is_game_over = True
-                self.tetris_map[block[0]][block[1]] = get_colour_number_by_name(self.moving_object[0].colour.name)
+                self.tetris_map[block[0]][block[1]] = get_colour_number_by_name(
+                    self.moving_object[0].colour.name)
 
             if not is_game_over:
                 temp = []
@@ -351,7 +454,8 @@ class GameScene(SceneBase):
                         temp.append(self.empty_line[:])
 
                 self.tetris_map = list(reversed(temp))
-                self.moving_object.append(get_random_shape(GameMetaData.map_row_no, GameMetaData.map_column_no))
+                self.moving_object.append(get_random_shape(
+                    GameMetaData.map_row_no, GameMetaData.map_column_no))
                 self.moving_object.pop(0)
 
             if self.super_speed_mode:

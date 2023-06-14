@@ -10,7 +10,8 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (100, 100)
 #########
 clock = pg.time.Clock()
 
-main_screen = pg.display.set_mode((GameMetaData.screen_width, GameMetaData.screen_height))
+main_screen = pg.display.set_mode(
+    (GameMetaData.screen_width, GameMetaData.screen_height))
 pg.display.set_caption("Petris")
 
 Scenes.titleScene = TitleScene()
